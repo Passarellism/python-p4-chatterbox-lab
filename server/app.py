@@ -44,20 +44,37 @@ def messages():
 def messages_by_id(id):
     # ipdb.set_trace()
     message = Message.query.filter(Message.id == id).first()
+    if request.method == 'PATCH':
 
-    setattr(message, 'body', request.get_json()['body'])
+        setattr(message, 'body', request.get_json()['body'])
 
-    db.session.add(message)
-    db.session.commit()
+        db.session.add(message)
+        db.session.commit()
 
+        message_dict = message.to_dict()
+        response = make_response(
+            jsonify(message_dict),
+            200
+        )
 
-    message_dict = message.to_dict()
-    response = make_response(
-        jsonify(message_dict),
-        200
-    )
+        return response
 
-    return response
+    elif request.method == 'DELETE':
+        db.session.delete(message)
+        db.session.commit()
+
+        response_body = {
+            "delete_successful": True,
+            "message": "Message deleted."
+        }
+
+        response = make_response(
+            response_body, 
+            200
+        )
+
+        return response
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
