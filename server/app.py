@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
-# import ipdb
+import ipdb
 
 from models import db, Message
 
@@ -40,9 +40,24 @@ def messages():
         )
         return response
 
-@app.route('/messages/<int:id>')
+@app.route('/messages/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
 def messages_by_id(id):
-    return ''
+    # ipdb.set_trace()
+    message = Message.query.filter(Message.id == id).first()
+
+    setattr(message, 'body', request.get_json()['body'])
+
+    db.session.add(message)
+    db.session.commit()
+
+
+    message_dict = message.to_dict()
+    response = make_response(
+        jsonify(message_dict),
+        200
+    )
+
+    return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
